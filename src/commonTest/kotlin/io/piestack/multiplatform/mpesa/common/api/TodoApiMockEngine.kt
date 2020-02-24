@@ -4,14 +4,10 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockHttpRequest
 import io.ktor.client.engine.mock.MockHttpResponse
 import io.ktor.content.TextContent
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.charsets.Charsets
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.http.*
+import kotlinx.coroutines.io.ByteReadChannel
+import kotlinx.io.charsets.Charsets
+import kotlinx.io.core.toByteArray
 import kotlin.test.assertEquals
 
 class TodoApiMockEngine {
