@@ -35,13 +35,13 @@ kotlin {
         }
         
         fromPreset(presets.js, "js") {
-            compileKotlinJs {
-                kotlinOptions.metaInfo = true
-                kotlinOptions.outputFile = "$project.buildDir.path/js/${project.name}.js"
-                kotlinOptions.sourceMap = true
-                kotlinOptions.moduleKind = "commonjs"
-                kotlinOptions.main = "call"
-            }
+//            compileKotlinJs {
+//                kotlinOptions.metaInfo = true
+//                kotlinOptions.outputFile = "$project.buildDir.path/js/${project.name}.js"
+//                kotlinOptions.sourceMap = true
+//                kotlinOptions.moduleKind = "commonjs"
+//                kotlinOptions.main = "call"
+//            }
         }
         
         final def iOSTarget = System.getenv('SDK_NAME')?.startsWith("iphoneos")      \
