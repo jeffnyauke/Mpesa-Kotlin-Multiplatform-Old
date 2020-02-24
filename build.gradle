@@ -1,88 +1,56 @@
 plugins {
     id 'kotlin-multiplatform' version '1.3.61'
     id 'kotlinx-serialization' version '1.3.61'
-    id 'maven-publish'
 }
 
 group 'io.piestack.multiplatform'
 version '0.0.1'
-def ios_framework_name = "Client"
 
 repositories {
     google()
     jcenter()
-    mavenCentral()
     maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
 kotlin {
-    
-    // For ARM, should be changed to iosArm32 or iosArm64
-    // For Linux, should be changed to e.g. linuxX64
-    // For MacOS, should be changed to e.g. macosX64
-    // For Windows, should be changed to e.g. mingwX64
-    // mingwX64("mingw")
+    def serialization_version = "0.10.0"
+    def ktor_version = "1.1.2"
+    def coroutines_version = "1.1.1"
 
     targets {
-        fromPreset(presets.jvm, 'jvm') {
-            mavenPublication {
-                artifactId = project.name
-            }
+        fromPreset(presets.jvm, 'jvm')
 
-            compilations.main.kotlinOptions {
-                jvmTarget = "1.8"
-            }
-        }
-        
-        fromPreset(presets.js, "js") {
-//            compileKotlinJs {
-//                kotlinOptions.metaInfo = true
-//                kotlinOptions.outputFile = "$project.buildDir.path/js/${project.name}.js"
-//                kotlinOptions.sourceMap = true
-//                kotlinOptions.moduleKind = "commonjs"
-//                kotlinOptions.main = "call"
-//            }
-        }
-        
-        final def iOSTarget = System.getenv('SDK_NAME')?.startsWith("iphoneos")      \
-                                   ? presets.iosArm64 : presets.iosX64
+        final def iOSTarget = System.getenv('SDK_NAME')?.startsWith("iphoneos")     \
+                                  ? presets.iosArm64 : presets.iosX64
 
-        fromPreset(iOSTarget, 'ios') {
+        fromPreset(iOSTarget, 'iOS') {
             binaries {
-                framework("$ios_framework_name")
+                framework("Client")
             }
         }
     }
-
-    def serialization_version = "0.14.0"
-    def ktor_version = "1.1.2"
-    def coroutines_version = "1.3.3"
-
     sourceSets {
         commonMain {
             dependencies {
-                implementation kotlin('stdlib-common')
-                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.3"
-                implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:0.14.0"
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
+                implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serialization_version"
 
                 implementation "io.ktor:ktor-client-core:$ktor_version"
                 implementation "io.ktor:ktor-client-json:$ktor_version"
             }
         }
-        
         commonTest {
             dependencies {
-                implementation kotlin('test-common')
-                implementation kotlin('test-annotations-common')
+                implementation 'org.jetbrains.kotlin:kotlin-test-common'
+                implementation 'org.jetbrains.kotlin:kotlin-test-annotations-common'
 
                 api "io.ktor:ktor-client-mock:$ktor_version"
                 api "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutines_version"
             }
         }
-        
         jvmMain {
             dependencies {
-                implementation kotlin('stdlib-jdk8')
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
                 implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
 
@@ -91,151 +59,44 @@ kotlin {
                 implementation "io.ktor:ktor-client-okhttp:$ktor_version"
             }
         }
-        
         jvmTest {
             dependencies {
-                implementation kotlin('test')
-                implementation kotlin('test-junit')
-
                 implementation 'junit:junit:4.12'
+                implementation 'org.jetbrains.kotlin:kotlin-test'
+                implementation 'org.jetbrains.kotlin:kotlin-test-junit'
 
                 api "io.ktor:ktor-client-mock-jvm:$ktor_version"
                 api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
             }
         }
-                
-        jsMain {
-            dependencies {
-                implementation kotlin('stdlib-js')
-            }
-        }
-        
-        jsTest {
-            dependencies {
-                implementation kotlin('test-js')
-            }
-        }
-
-        appleMain {
-            dependsOn commonMain
+        iOSMain {
             dependencies {
                 implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
 
+                implementation "io.ktor:ktor-client-ios:$ktor_version"
+                implementation "io.ktor:ktor-client-core-native:$ktor_version"
+                implementation "io.ktor:ktor-client-json-native:$ktor_version"
             }
-        }
 
-        appleTest {
-            dependsOn commonTest
+        }
+        iOSTest {
             dependencies {
                 api "io.ktor:ktor-client-mock-native:$ktor_version"
                 api "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutines_version"
             }
         }
-
-        iosMain {
-            dependsOn appleMain
-            dependencies {
-                implementation "io.ktor:ktor-client-ios:$ktor_version"
-                implementation "io.ktor:ktor-client-core-native:$ktor_version"
-                implementation "io.ktor:ktor-client-json-native:$ktor_version"
-            }
-        }
-        
-        iosTest {
-            dependsOn appleTest
-        }
-
-/*        watchMain {
-            dependsOn appleMain
-        }
-
-        watchTest {
-            dependsOn appleTest
-        }*/
     }
-
-    // Configure all compilations of all targets:
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                allWarningsAsErrors = true
-            }
-        }
-    }
-}
-
-task packIOSForXcode {
-    final File frameworkDir = new File(buildDir, "xcode-frameworks/ios")
-    final String buildType = project.findProperty("XCODE_CONFIGURATION")?.toUpperCase() ?: 'DEBUG'
-    def keyFrameworkPrefix = "$ios_framework_name${buildType.toLowerCase().capitalize()}"
-    dependsOn "link${keyFrameworkPrefix}FrameworkIos"
-    doLast {
-        def srcFile = kotlin.targets.ios.binaries.getFramework("$ios_framework_name", buildType).outputFile
-        copy {
-            from srcFile.parent
-            into frameworkDir
-        }
-        new File(frameworkDir, 'gradlew').with {
-            text = "#!/bin/bash\nexport 'JAVA_HOME=${System.getProperty("java.home")}'\ncd '${rootProject.rootDir}'\n./gradlew \$@\n"
-            setExecutable(true)
-        }
-    }
-}
-tasks.build.dependsOn packIOSForXcode
-
-/*task packWatchForXcode {
-    final File frameworkDir = new File(buildDir, "xcode-frameworks/watch")
-    final String buildType = project.findProperty("XCODE_CONFIGURATION")?.toUpperCase() ?: 'DEBUG'
-    def keyFrameworkPrefix = "$ios_framework_name${buildType.toLowerCase().capitalize()}"
-    dependsOn "link${keyFrameworkPrefix}FrameworkWatch"
-    doLast {
-        def srcFile = kotlin.targets.watch.binaries.getFramework("$ios_framework_name", buildType).outputFile
-        copy {
-            from srcFile.parent
-            into frameworkDir
-        }
-        new File(frameworkDir, 'gradlew').with {
-            text = "#!/bin/bash\nexport 'JAVA_HOME=${System.getProperty("java.home")}'\ncd '${rootProject.rootDir}'\n./gradlew \$@\n"
-            setExecutable(true)
-        }
-    }
-}
-tasks.build.dependsOn packWatchForXcode*/
-
-task packForXcode {
-    dependsOn packIOSForXcode
-    //dependsOn packWatchForXcode
 }
 
 task iosTest {
-    def device = project.findProperty("iosDevice")?.toString() ?: "iPhone 11"
-    dependsOn 'linkDebugTestIos'
-    group = JavaBasePlugin.VERIFICATION_GROUP
-    description = "Runs tests for target 'ios' on an iOS simulator"
-
     doLast {
-        def binary = kotlin.targets.ios.binaries.getTest("DEBUG").outputFile
+        def binary = kotlin.targets.iOS.compilations.test.getBinary('EXECUTABLE', 'DEBUG')
         exec {
-            commandLine 'xcrun', 'simctl', 'spawn', '--standalone', device, binary.absolutePath
+            commandLine 'xcrun', 'simctl', 'spawn', "iPhone XR", binary.absolutePath
         }
     }
 }
 tasks.check.dependsOn iosTest
-
-/*task watchTest {
-    def device = project.findProperty("watchDevice")?.toString() ?: "Apple Watch Series 5 - 44mm"
-    dependsOn 'linkDebugTestWatch'
-    group = JavaBasePlugin.VERIFICATION_GROUP
-    description = "Runs tests for target 'watch' on an WatchOS simulator"
-
-    doLast {
-        def binary = kotlin.targets.watch.binaries.getTest("DEBUG").outputFile
-        exec {
-            commandLine 'xcrun', 'simctl', 'spawn', '--standalone', device, binary.absolutePath
-        }
-    }
-}
-tasks.check.dependsOn watchTest*/
 
 tasks.withType(Test) {
     testLogging {
