@@ -155,3 +155,24 @@ val packForXcode by tasks.creating(Sync::class) {
 }
 
 tasks.getByName("build").dependsOn(packForXcode)
+
+tasks.withType<Test> {
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = true
+    }
+}
+
+val ktlint by configurations.creating
+
+dependencies {
+    ktlint("com.github.shyiko:ktlint:0.31.0")
+}
+
+val klintIdea by tasks.creating(JavaExec::class) {
+    description = "Apply ktlint rules to IntelliJ"
+    classpath = ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args = listOf("src/**/*.kt", "-F")
+}
