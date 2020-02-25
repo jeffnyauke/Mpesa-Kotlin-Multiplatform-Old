@@ -5,6 +5,7 @@ plugins {
 
 group 'io.piestack.multiplatform'
 version '0.0.1'
+def ios_framework_name = "Client"
 
 repositories {
     google()
@@ -30,6 +31,12 @@ kotlin {
         }
     }
     sourceSets {
+        all {
+            languageSettings {
+                useExperimentalAnnotation 'kotlin.Experimental'
+                useExperimentalAnnotation 'kotlinx.serialization.UnstableDefault'
+            }
+        }
         commonMain {
             dependencies {
                 implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
