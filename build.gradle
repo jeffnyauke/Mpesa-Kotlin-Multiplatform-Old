@@ -25,9 +25,7 @@ kotlin {
                                   ? presets.iosArm64 : presets.iosX64
 
         fromPreset(iOSTarget, 'iOS') {
-            binaries {
-                framework("Client")
-            }
+            compilations.main.outputKinds('FRAMEWORK')
         }
     }
     sourceSets {
@@ -96,17 +94,12 @@ kotlin {
 }
 
 task iosTest {
-    def device = project.findProperty("iosDevice")?.toString() ?: "iPhone 11"
-    dependsOn 'linkDebugTestIos'
-    group = JavaBasePlugin.VERIFICATION_GROUP
-    description = "Runs tests for target 'ios' on an iOS simulator"
-
-    doLast {
+   doLast {
         def binary = kotlin.targets.ios.binaries.getTest("DEBUG").outputFile
         exec {
             commandLine 'xcrun', 'simctl', 'spawn', '--standalone', device, binary.absolutePath
         }
-    }
+   }
 }
 tasks.check.dependsOn iosTest
 
