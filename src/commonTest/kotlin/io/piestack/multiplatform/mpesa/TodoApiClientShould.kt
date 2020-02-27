@@ -2,10 +2,12 @@ package io.piestack.multiplatform.mpesa
 
 import io.piestack.multiplatform.mpesa.common.api.TodoApiMockEngine
 import io.piestack.multiplatform.mpesa.common.coroutines.runTest
+import io.piestack.multiplatform.mpesa.common.helpers.JsName
 import io.piestack.multiplatform.mpesa.common.responses.*
 import io.piestack.multiplatform.mpesa.error.ItemNotFoundError
 import io.piestack.multiplatform.mpesa.error.UnknownError
 import io.piestack.multiplatform.mpesa.model.Task
+import kotlinx.serialization.UnstableDefault
 import kotlin.test.*
 
 class TodoApiClientShould {
@@ -20,6 +22,8 @@ class TodoApiClientShould {
 
     private val todoApiMockEngine = TodoApiMockEngine()
 
+    @UnstableDefault
+    @JsName("SendAcceptHeaderTest")
     @Test
     fun `send accept header`() = runTest {
         val apiClient = givenAMockTodoApiClient(ALL_TASK_SEGMENT, getTasksResponse())
@@ -29,6 +33,8 @@ class TodoApiClientShould {
         todoApiMockEngine.verifyRequestContainsHeader("Accept", "application/json")
     }
 
+    @UnstableDefault
+    @JsName("SendRequestWithGetHttpVerbGettingAllTaskTest")
     @Test
     fun `send request with get http verb getting all task`() = runTest {
         val apiClient = givenAMockTodoApiClient(ALL_TASK_SEGMENT, getTasksResponse())
@@ -38,6 +44,8 @@ class TodoApiClientShould {
         todoApiMockEngine.verifyGetRequest()
     }
 
+    @UnstableDefault
+    @JsName("ReturnTasksAndParsesItProperlyTest")
     @Test
     fun `return tasks and parses it properly`() = runTest {
         val apiClient = givenAMockTodoApiClient(ALL_TASK_SEGMENT, getTasksResponse())
@@ -52,6 +60,8 @@ class TodoApiClientShould {
             })
     }
 
+    @UnstableDefault
+    @JsName("ReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return http error 500 if server response internal server error getting all task`() =
         runTest {
@@ -64,6 +74,7 @@ class TodoApiClientShould {
                 { right -> fail("Should return left but was right: $right") })
         }
 
+    @JsName("yuReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `send request with get http verb getting getting by id`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, getTaskByIdResponse())
@@ -73,6 +84,7 @@ class TodoApiClientShould {
         todoApiMockEngine.verifyGetRequest()
     }
 
+    @JsName("neReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return task and parses it properly getting by id`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, getTaskByIdResponse())
@@ -86,6 +98,7 @@ class TodoApiClientShould {
             })
     }
 
+    @JsName("zeReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return item not found error if there is no task with the passed id`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, httpStatusCode = 404)
@@ -97,6 +110,7 @@ class TodoApiClientShould {
             { right -> fail("Should return left but was right: $right") })
     }
 
+    @JsName("zaReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return http error 500 if server response internal server error getting task by id`() =
         runTest {
@@ -109,6 +123,7 @@ class TodoApiClientShould {
                 { right -> fail("Should return left but was right: $right") })
         }
 
+    @JsName("baReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `send request with post http verb adding a new task`() = runTest {
         val apiClient =
@@ -119,6 +134,7 @@ class TodoApiClientShould {
         todoApiMockEngine.verifyPostRequest()
     }
 
+    @JsName("beReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `send the correct body adding a new task`() = runTest {
         val apiClient =
@@ -129,6 +145,7 @@ class TodoApiClientShould {
         todoApiMockEngine.verifyRequestBody(addTaskRequest())
     }
 
+    @JsName("biReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return task and parses it properly adding a new task`() = runTest {
         val apiClient = givenAMockTodoApiClient(ALL_TASK_SEGMENT, addTaskResponse())
@@ -142,6 +159,7 @@ class TodoApiClientShould {
             })
     }
 
+    @JsName("boReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return http error 500 if server response internal server error adding a new task`() =
         runTest {
@@ -154,6 +172,7 @@ class TodoApiClientShould {
                 { right -> fail("Should return left but was right: $right") })
         }
 
+    @JsName("buReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `send request with put http verb updating a task`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, updateTaskResponse())
@@ -163,6 +182,7 @@ class TodoApiClientShould {
         todoApiMockEngine.verifyPutRequest()
     }
 
+    @JsName("caReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `send the correct body updating a new task`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, updateTaskResponse())
@@ -172,6 +192,7 @@ class TodoApiClientShould {
         todoApiMockEngine.verifyRequestBody(updateTaskRequest())
     }
 
+    @JsName("ceReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return task and parses it properly updating a new task`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, addTaskResponse())
@@ -185,6 +206,7 @@ class TodoApiClientShould {
             })
     }
 
+    @JsName("ciReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return item not found error if there is no task updating it`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, httpStatusCode = 404)
@@ -196,6 +218,7 @@ class TodoApiClientShould {
             { right -> fail("Should return left but was right: $right") })
     }
 
+    @JsName("coReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return http error 500 if server response internal server error updating a task`() =
         runTest {
@@ -208,6 +231,7 @@ class TodoApiClientShould {
                 { right -> fail("Should return left but was right: $right") })
         }
 
+    @JsName("cuReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `send request with delete http verb deleting a task`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, httpStatusCode = 200)
@@ -217,6 +241,7 @@ class TodoApiClientShould {
         todoApiMockEngine.verifyDeleteRequest()
     }
 
+    @JsName("daReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return item not found error if there is no task deleting it`() = runTest {
         val apiClient = givenAMockTodoApiClient(TASK_SEGMENT, httpStatusCode = 404)
@@ -228,6 +253,7 @@ class TodoApiClientShould {
             { right -> fail("Should return left but was right: $right") })
     }
 
+    @JsName("deReturnHttpError500IfServerResponseInternalServerErrorGettingAllTaskTest")
     @Test
     fun `return http error 500 if server response internal server error deleting a task`() =
         runTest {
@@ -255,6 +281,6 @@ class TodoApiClientShould {
     ): TodoApiClient {
         todoApiMockEngine.enqueueMockResponse(endpointSegment, responseBody, httpStatusCode)
 
-        return TodoApiClient(todoApiMockEngine.get())
+        return TodoApiClient(todoApiMockEngine.get().engine)
     }
 }

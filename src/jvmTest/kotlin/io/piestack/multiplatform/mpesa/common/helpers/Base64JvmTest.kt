@@ -1,5 +1,6 @@
-package io.piestack.multiplatform.mpesa.helpers
+package io.piestack.multiplatform.mpesa.common.helpers
 
+import io.piestack.multiplatform.mpesa.helpers.Base64Factory
 import org.junit.Test
 import kotlin.test.assertEquals
 

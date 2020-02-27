@@ -1,18 +1,19 @@
 package io.piestack.multiplatform.mpesa.common.api
 
+import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.MockHttpRequest
-import io.ktor.client.engine.mock.MockHttpResponse
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.request.HttpRequestData
 import io.ktor.content.TextContent
 import io.ktor.http.*
-import kotlinx.coroutines.io.ByteReadChannel
-import kotlinx.io.charsets.Charsets
-import kotlinx.io.core.toByteArray
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.core.toByteArray
 import kotlin.test.assertEquals
 
 class TodoApiMockEngine {
     private lateinit var mockResponse: MockResponse
-    private var lastRequest: MockHttpRequest? = null
+    private var lastRequest: HttpRequestData? = null
 
     fun enqueueMockResponse(
         endpointSegment: String,
@@ -22,20 +23,22 @@ class TodoApiMockEngine {
         mockResponse = MockResponse(endpointSegment, responseBody, httpStatusCode)
     }
 
-    fun get() = MockEngine {
-        lastRequest = this
-
-        when (url.encodedPath) {
-            "${mockResponse.endpointSegment}" -> {
-                MockHttpResponse(
-                    call,
-                    HttpStatusCode.fromValue(mockResponse.httpStatusCode),
-                    ByteReadChannel(mockResponse.responseBody.toByteArray(Charsets.UTF_8)),
-                    headersOf(HttpHeaders.ContentType to listOf(ContentType.Application.Json.toString()))
-                )
-            }
-            else -> {
-                error("Unhandled ${url.fullPath}")
+    fun get() = HttpClient(MockEngine) {
+        engine {
+            addHandler { request ->
+                lastRequest = request
+                when (request.url.encodedPath) {
+                    mockResponse.endpointSegment -> {
+                        val responseHeaders =
+                            headersOf(HttpHeaders.ContentType to listOf(ContentType.Application.Json.toString()))
+                        respond(
+                            content = ByteReadChannel(mockResponse.responseBody.toByteArray(Charsets.UTF_8)),
+                            status = HttpStatusCode.fromValue(mockResponse.httpStatusCode),
+                            headers = responseHeaders
+                        )
+                    }
+                    else -> error("Unhandled ${request.url.fullPath}")
+                }
             }
         }
     }
@@ -46,7 +49,7 @@ class TodoApiMockEngine {
     }
 
     fun verifyRequestBody(addTaskRequest: String) {
-        val body = (lastRequest!!.content as TextContent).text
+        val body = (lastRequest!!.body as TextContent).text
 
         assertEquals(addTaskRequest, body)
     }

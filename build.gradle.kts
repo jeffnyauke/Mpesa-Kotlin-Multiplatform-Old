@@ -25,8 +25,10 @@ kotlin {
     }
 
     js {
-        browser()
-        nodejs()
+        browser {
+        }
+        nodejs {
+        }
     }
 
     //linuxX64()
@@ -138,14 +140,6 @@ kotlin {
                     api("io.ktor:ktor-client-mock-native:$ktorVersion")
                     api("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
                 }
-            }
-        }
-    }
-
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                allWarningsAsErrors = true
             }
         }
     }

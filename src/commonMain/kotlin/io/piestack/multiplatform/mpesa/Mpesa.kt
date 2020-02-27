@@ -8,6 +8,8 @@ import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.url
+import io.ktor.utils.io.charsets.Charset
+import io.ktor.utils.io.core.toByteArray
 import io.piestack.multiplatform.mpesa.error.ApiError
 import io.piestack.multiplatform.mpesa.error.ItemNotFoundError
 import io.piestack.multiplatform.mpesa.error.NetworkError
@@ -16,8 +18,6 @@ import io.piestack.multiplatform.mpesa.helpers.Base64Factory
 import io.piestack.multiplatform.mpesa.model.AuthResponse
 import io.piestack.multiplatform.mpesa.model.Task
 import io.piestack.multiplatform.mpesa.model.enums.Environment
-import kotlinx.io.charsets.Charset
-import kotlinx.io.core.toByteArray
 import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 
@@ -62,10 +62,10 @@ class Mpesa(
 
     private fun handleError(exception: Exception): Either<ApiError, Nothing> =
         if (exception is ResponseException) {
-            if (exception.statusCode.value == 404) {
+            if (exception.response.status.value == 404) {
                 Either.Left(ItemNotFoundError)
             } else {
-                Either.Left(UnknownError(exception.statusCode.value))
+                Either.Left(UnknownError(exception.response.status.value))
             }
         } else {
             Either.Left(NetworkError)
