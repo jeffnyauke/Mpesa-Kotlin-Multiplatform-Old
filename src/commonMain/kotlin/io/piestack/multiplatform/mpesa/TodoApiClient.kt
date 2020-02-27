@@ -2,7 +2,7 @@ package io.piestack.multiplatform.mpesa
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.features.BadResponseStatusException
+import io.ktor.client.features.ResponseException
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.delete
@@ -15,7 +15,9 @@ import io.piestack.multiplatform.mpesa.error.ApiError
 import io.piestack.multiplatform.mpesa.error.ItemNotFoundError
 import io.piestack.multiplatform.mpesa.error.NetworkError
 import io.piestack.multiplatform.mpesa.error.UnknownError
+import io.piestack.multiplatform.mpesa.model.AuthResponse
 import io.piestack.multiplatform.mpesa.model.Task
+import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.list
 
@@ -34,10 +36,12 @@ class TodoApiClient constructor(
                 // Obtaining serializer from KClass is not available on native
                 // due to the lack of reflection
                 register(Task.serializer())
+                register(AuthResponse.serializer())
             }
         }
     }
 
+    @UnstableDefault
     suspend fun getAllTasks(): Either<ApiError, List<Task>> = try {
         val tasksJson = client.get<String>("$BASE_ENDPOINT/todos")
 
@@ -89,11 +93,11 @@ class TodoApiClient constructor(
     }
 
     private fun handleError(exception: Exception): Either<ApiError, Nothing> =
-        if (exception is BadResponseStatusException) {
-            if (exception.statusCode.value == 404) {
+        if (exception is ResponseException) {
+            if (exception.response.status.value == 404) {
                 Either.Left(ItemNotFoundError)
             } else {
-                Either.Left(UnknownError(exception.statusCode.value))
+                Either.Left(UnknownError(exception.response.status.value))
             }
         } else {
             Either.Left(NetworkError)
