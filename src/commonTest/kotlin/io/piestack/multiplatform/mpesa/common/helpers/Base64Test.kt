@@ -1,5 +1,7 @@
 package io.piestack.multiplatform.mpesa.common.helpers
 
+import io.ktor.utils.io.charsets.Charset
+import io.ktor.utils.io.core.toByteArray
 import io.piestack.multiplatform.mpesa.helpers.Base64Factory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,10 +24,9 @@ class Base64Test {
     }
 
     private fun checkEncodeToString(input: String, expectedOutput: String) {
-        assertEquals(expectedOutput, Base64Factory.createEncoder().encodeToString(input.asciiToByteArray()))
-    }
-
-    private fun String.asciiToByteArray() = ByteArray(length) {
-        get(it).toByte()
+        assertEquals(
+            expectedOutput,
+            Base64Factory.createEncoder().encodeToString(input.toByteArray(Charset.forName("ISO-8859-1")))
+        )
     }
 }
