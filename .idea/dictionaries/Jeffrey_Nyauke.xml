@@ -4,10 +4,13 @@
       <w>coroutines</w>
       <w>kotlinx</w>
       <w>ktor</w>
+      <w>lipa</w>
       <w>mpesa</w>
       <w>multiplatform</w>
       <w>okhttp</w>
+      <w>pesa</w>
       <w>piestack</w>
+      <w>shortcode</w>
     </words>
   </dictionary>
 </component>

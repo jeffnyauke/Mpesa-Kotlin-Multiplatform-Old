@@ -7,14 +7,20 @@ import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.core.toByteArray
 import io.piestack.multiplatform.mpesa.error.*
 import io.piestack.multiplatform.mpesa.helpers.Base64Factory
-import io.piestack.multiplatform.mpesa.model.AuthResponse
+import io.piestack.multiplatform.mpesa.helpers.generatePassword
+import io.piestack.multiplatform.mpesa.helpers.generateTimestamp
 import io.piestack.multiplatform.mpesa.model.Task
 import io.piestack.multiplatform.mpesa.model.enums.Environment
+import io.piestack.multiplatform.mpesa.model.enums.TransactionType
+import io.piestack.multiplatform.mpesa.model.requests.STKRequest
+import io.piestack.multiplatform.mpesa.model.responses.AuthResponse
+import io.piestack.multiplatform.mpesa.model.responses.LipaNaMpesaOnlinePaymentResponse
 import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 
@@ -22,7 +28,12 @@ class Mpesa(
     httpClientEngine: HttpClientEngine? = null,
     private val appKey: String,
     private val appSecret: String,
-    private val environment: Environment
+    private val environment: Environment,
+    private val shortCode: String? = null,
+    private val initiatorName: String? = null,
+    private val lipaNaMpesaShortCode: String? = null,
+    private val lipaNaMpesaShortPass: String? = null,
+    private val securityCredential: String? = null
 ) {
 
     private val client: HttpClient = HttpClient(httpClientEngine!!) {
@@ -57,8 +68,8 @@ class Mpesa(
         handleError(e)
     }
 
-    /*@UnstableDefault
-    private suspend fun stkPush(): Either<ApiError, AuthResponse> = try {
+    @UnstableDefault
+    private suspend fun lipaNaMpesaOnlinePayment(): Either<ApiError, AuthResponse> = try {
         val appKeySecret = "$appKey:$appSecret"
         val bytes = appKeySecret.toByteArray(Charset.forName("ISO-8859-1"))
         val encoded = Base64Factory.createEncoder().encodeToString(bytes)
@@ -78,53 +89,52 @@ class Mpesa(
         handleError(e)
     }
 
-    suspend fun stkPush(
-        businessShortCode: String,
-        passKey: String,
-        transactionType: String,
+    @UnstableDefault
+    suspend fun lipaNaMpesaOnlinePayment(
         amount: String,
         phoneNumber: String,
-        partyA: String,
-        partyB: String,
         callBackURL: String,
         queueTimeOutURL: String,
         accountReference: String,
-        transactionDesc: String
-    ): Response.StkResponse {
-        val timestamp = generateTimestamp()
-        val password = generatePassword(businessShortCode, passKey, timestamp)
-        val requestObject = Stk(
-            businessShortCode,
-            password,
-            timestamp,
-            transactionType,
-            amount,
-            phoneNumber,
-            partyA,
-            partyB,
-            callBackURL,
-            accountReference,
-            queueTimeOutURL,
-            transactionDesc
-        )
+        transactionDesc: String = "Lipa na mpesa online payment"
+    ): LipaNaMpesaOnlinePaymentResponse {
+        when {
+            shortCode == null -> throw NullPointerException("Shortcode is null. Provide the value in your Mpesa instance.")
+            lipaNaMpesaShortPass == null -> throw NullPointerException("Lipa na Mpesa Passkey is null. Provide the value in your Mpesa instance.")
+            else -> {
+                val timestamp = generateTimestamp()
+                val password = generatePassword(shortCode, lipaNaMpesaShortPass, timestamp)
+                val requestObject = STKRequest(
+                    shortCode,
+                    password,
+                    timestamp,
+                    TransactionType.CustomerPayBillOnline.name,
+                    amount,
+                    phoneNumber,
+                    phoneNumber,
+                    shortCode,
+                    callBackURL,
+                    accountReference,
+                    queueTimeOutURL,
+                    transactionDesc
+                )
 
-        val authResponse = authenticate()
-
-        return client.post {
-            url("${env.baseUrl}/mpesa/stkpush/v1/processrequest")
-            body = requestObject
-            header("content-type", "application/json")
-            header("authorization", "Bearer ${authResponse.accessToken}")
+                when (val authResponse = authenticate()) {
+                    is Either.Left -> throw Error("Invalid credentials: ${authResponse.value}")
+                    is Either.Right -> {
+                        return client.post {
+                            url("${environment.baseUrl}/mpesa/stkpush/v1/processrequest")
+                            body = requestObject
+                            header("content-type", "application/json")
+                            header("authorization", "Bearer ${authResponse.value.accessToken}")
+                        }
+                    }
+                }
+            }
         }
 
-    }*/
+    }
 
-    /*tasksResponse.fold(
-    { left -> fail("Should return right but was left: $left") },
-    { right ->
-        assertEquals(4, right.size.toLong())
-        assertTaskContainsExpectedValues(right[0])
-    })*/
 
     private fun handleError(exception: Exception): Either<ApiError, Nothing> =
         if (exception is ResponseException) {

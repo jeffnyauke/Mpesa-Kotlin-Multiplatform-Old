@@ -55,6 +55,7 @@ kotlin {
     val serializationVersion = "0.14.0"
     val ktorVersion = "1.3.1"
     val coroutinesVersion = "1.3.3"
+    val klockVersion = "1.7.0"
 
     sourceSets {
         val commonMain by getting {
@@ -64,6 +65,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-json:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization:$ktorVersion")
+                implementation("com.soywiz.korlibs.klock:klock:$klockVersion")
             }
         }
         val commonTest by getting {

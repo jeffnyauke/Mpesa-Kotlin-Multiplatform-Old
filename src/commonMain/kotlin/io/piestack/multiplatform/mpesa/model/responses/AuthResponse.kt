@@ -1,4 +1,4 @@
-package io.piestack.multiplatform.mpesa.model
+package io.piestack.multiplatform.mpesa.model.responses
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

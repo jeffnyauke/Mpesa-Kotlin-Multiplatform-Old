@@ -15,8 +15,8 @@ import io.piestack.multiplatform.mpesa.error.ApiError
 import io.piestack.multiplatform.mpesa.error.ItemNotFoundError
 import io.piestack.multiplatform.mpesa.error.NetworkError
 import io.piestack.multiplatform.mpesa.error.UnknownError
-import io.piestack.multiplatform.mpesa.model.AuthResponse
 import io.piestack.multiplatform.mpesa.model.Task
+import io.piestack.multiplatform.mpesa.model.responses.AuthResponse
 import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.list
