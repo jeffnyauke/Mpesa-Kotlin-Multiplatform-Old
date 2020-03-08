@@ -18,7 +18,8 @@ import io.piestack.multiplatform.mpesa.helpers.generateTimestamp
 import io.piestack.multiplatform.mpesa.model.Task
 import io.piestack.multiplatform.mpesa.model.enums.Environment
 import io.piestack.multiplatform.mpesa.model.enums.TransactionType
-import io.piestack.multiplatform.mpesa.model.requests.STKRequest
+import io.piestack.multiplatform.mpesa.model.requests.LipaNaMpesaOnlinePaymentRequest
+import io.piestack.multiplatform.mpesa.model.requests.LipaNaMpesaOnlineQueryRequest
 import io.piestack.multiplatform.mpesa.model.responses.AuthResponse
 import io.piestack.multiplatform.mpesa.model.responses.LipaNaMpesaOnlinePaymentResponse
 import kotlinx.serialization.UnstableDefault
@@ -69,27 +70,6 @@ class Mpesa(
     }
 
     @UnstableDefault
-    private suspend fun lipaNaMpesaOnlinePayment(): Either<ApiError, AuthResponse> = try {
-        val appKeySecret = "$appKey:$appSecret"
-        val bytes = appKeySecret.toByteArray(Charset.forName("ISO-8859-1"))
-        val encoded = Base64Factory.createEncoder().encodeToString(bytes)
-
-        val authResponseJson = client.get<String> {
-            url("${environment.baseUrl}/oauth/v1/generate?grant_type=client_credentials")
-            header("authorization", "Basic $encoded")
-            header("cache-control", "no-cache")
-        }
-
-        // JsonFeature does not working currently with root-level array
-        // https://github.com/Kotlin/kotlinx.serialization/issues/179
-        val authResponse = Json.nonstrict.parse(AuthResponse.serializer(), authResponseJson)
-
-        Either.Right(authResponse)
-    } catch (e: Exception) {
-        handleError(e)
-    }
-
-    @UnstableDefault
     suspend fun lipaNaMpesaOnlinePayment(
         amount: String,
         phoneNumber: String,
@@ -99,12 +79,12 @@ class Mpesa(
         transactionDesc: String = "Lipa na mpesa online payment"
     ): LipaNaMpesaOnlinePaymentResponse {
         when {
-            shortCode == null -> throw NullPointerException("Shortcode is null. Provide the value in your Mpesa instance.")
-            lipaNaMpesaShortPass == null -> throw NullPointerException("Lipa na Mpesa Passkey is null. Provide the value in your Mpesa instance.")
+            shortCode == null -> throw IllegalArgumentException("Shortcode should exist. Provide the value in your Mpesa instance.")
+            lipaNaMpesaShortPass == null -> throw IllegalArgumentException("Lipa na Mpesa Passkey should exist. Provide the value in your Mpesa instance.")
             else -> {
                 val timestamp = generateTimestamp()
                 val password = generatePassword(shortCode, lipaNaMpesaShortPass, timestamp)
-                val requestObject = STKRequest(
+                val requestObject = LipaNaMpesaOnlinePaymentRequest(
                     shortCode,
                     password,
                     timestamp,
@@ -132,7 +112,38 @@ class Mpesa(
                 }
             }
         }
+    }
 
+    @UnstableDefault
+    suspend fun lipaNaMpesaOnlineQueryRequest(
+        checkoutRequestID: String
+    ): LipaNaMpesaOnlinePaymentResponse {
+        when {
+            shortCode == null -> throw IllegalArgumentException("Shortcode should exist. Provide the value in your Mpesa instance.")
+            lipaNaMpesaShortPass == null -> throw IllegalArgumentException("Lipa na Mpesa Passkey should exist. Provide the value in your Mpesa instance.")
+            else -> {
+                val timestamp = generateTimestamp()
+                val password = generatePassword(shortCode, lipaNaMpesaShortPass, timestamp)
+                val requestObject = LipaNaMpesaOnlineQueryRequest(
+                    shortCode,
+                    password,
+                    timestamp,
+                    TransactionType.CustomerPayBillOnline.name
+                )
+
+                when (val authResponse = authenticate()) {
+                    is Either.Left -> throw IllegalArgumentException("Invalid credentials: ${authResponse.value}")
+                    is Either.Right -> {
+                        return client.post {
+                            url("${environment.baseUrl}/mpesa/stkpush/v1/processrequest")
+                            body = requestObject
+                            header("content-type", "application/json")
+                            header("authorization", "Bearer ${authResponse.value.accessToken}")
+                        }
+                    }
+                }
+            }
+        }
     }
 
 

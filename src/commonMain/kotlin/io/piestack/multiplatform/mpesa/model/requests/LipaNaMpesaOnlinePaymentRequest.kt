@@ -1,6 +1,6 @@
 package io.piestack.multiplatform.mpesa.model.requests
 
-data class STKRequest(
+data class LipaNaMpesaOnlinePaymentRequest(
     val BusinessShortCode: String,
     val Password: String,
     val Timestamp: String,
