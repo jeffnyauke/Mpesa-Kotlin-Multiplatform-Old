@@ -48,7 +48,7 @@ class Mpesa(
             header("cache-control", "no-cache")
         }
 
-        val authResponse = Json.nonstrict.parse(AuthResponse.serializer(), authResponseJson)
+        val authResponse = Json.parse(AuthResponse.serializer(), authResponseJson)
 
         Either.Right(authResponse)
     } catch (e: Exception) {

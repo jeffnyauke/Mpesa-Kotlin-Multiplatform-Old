@@ -16,10 +16,9 @@ import io.piestack.multiplatform.mpesa.error.ItemNotFoundError
 import io.piestack.multiplatform.mpesa.error.NetworkError
 import io.piestack.multiplatform.mpesa.error.UnknownError
 import io.piestack.multiplatform.mpesa.model.Task
-import io.piestack.multiplatform.mpesa.model.responses.AuthResponse
 import kotlinx.serialization.UnstableDefault
+import kotlinx.serialization.builtins.list
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.list
 
 class TodoApiClient constructor(
     httpClientEngine: HttpClientEngine? = null
@@ -31,13 +30,7 @@ class TodoApiClient constructor(
 
     private val client: HttpClient = HttpClient(httpClientEngine!!) {
         install(JsonFeature) {
-            serializer = KotlinxSerializer().apply {
-                // It's necessary register the serializer because:
-                // Obtaining serializer from KClass is not available on native
-                // due to the lack of reflection
-                register(Task.serializer())
-                register(AuthResponse.serializer())
-            }
+            serializer = KotlinxSerializer()
         }
     }
 
@@ -47,7 +40,7 @@ class TodoApiClient constructor(
 
         // JsonFeature does not working currently with root-level array
         // https://github.com/Kotlin/kotlinx.serialization/issues/179
-        val tasks = Json.nonstrict.parse(Task.serializer().list, tasksJson)
+        val tasks = Json.parse(Task.serializer().list, tasksJson)
 
         Either.Right(tasks)
     } catch (e: Exception) {

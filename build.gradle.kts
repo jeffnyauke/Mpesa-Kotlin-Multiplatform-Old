@@ -29,7 +29,7 @@ kotlin {
         }
     }
 
-    jvm("android")
+    jvm()
 
     js {
         browser()
@@ -79,7 +79,7 @@ kotlin {
             }
         }
 
-        val androidMain by getting {
+        val jvmMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
 
@@ -92,7 +92,7 @@ kotlin {
             }
         }
 
-        val androidTest by getting {
+        val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit"))
