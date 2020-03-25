@@ -4,8 +4,8 @@ group = "io.piestack.multiplatform"
 version = "0.0.1"
 
 plugins {
-    kotlin("multiplatform") version "1.4-M1"
-    kotlin("plugin.serialization") version "1.3.61"
+    kotlin("multiplatform") version "1.3.71"
+    kotlin("plugin.serialization") version "1.3.71"
     `maven-publish`
 }
 
