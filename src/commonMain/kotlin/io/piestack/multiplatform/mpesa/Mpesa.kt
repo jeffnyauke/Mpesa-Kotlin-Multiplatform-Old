@@ -135,6 +135,7 @@ class Mpesa(
     private val client: HttpClient = HttpClient(httpClientEngine!!) {
         install(JsonFeature) {
             serializer = KotlinxSerializer()
+
         }
     }
 
