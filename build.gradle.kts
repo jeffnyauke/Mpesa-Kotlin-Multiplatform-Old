@@ -39,7 +39,7 @@ kotlin {
     val serializationVersion = "0.20.0"
     val ktorVersion = "1.3.2"
     val coroutinesVersion = "1.3.4"
-    val klockVersion = "1.7.0"
+    val klockVersion = "1.9.1"
 
     sourceSets {
         val commonMain by getting {
