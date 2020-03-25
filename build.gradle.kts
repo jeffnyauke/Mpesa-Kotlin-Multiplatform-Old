@@ -115,6 +115,8 @@ kotlin {
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
+
+                api(npm("text-encoding"))
             }
         }
 
@@ -124,6 +126,8 @@ kotlin {
 
                 api("io.ktor:ktor-client-mock-js:$ktorVersion")
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutinesVersion")
+
+                api(npm("text-encoding"))
             }
         }
     }
