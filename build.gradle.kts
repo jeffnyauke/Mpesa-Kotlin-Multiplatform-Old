@@ -1,8 +1,10 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
+group = "io.piestack.multiplatform"
+version = "0.0.1"
+
 plugins {
-    id("org.jetbrains.dokka") version "0.10.1"
-    kotlin("multiplatform") version "1.3.61"
+    kotlin("multiplatform") version "1.4-M1"
     kotlin("plugin.serialization") version "1.3.61"
     `maven-publish`
 }
@@ -12,44 +14,26 @@ repositories {
     mavenCentral()
 }
 
-group = "io.piestack.multiplatform"
-version = "0.0.1"
-
 kotlin {
-    jvm {
-        val main by compilations.getting {
-            kotlinOptions {
-                jvmTarget = "1.8"
+    val iOSTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget =
+        if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
+            ::iosArm64
+        else
+            ::iosX64
+
+    iOSTarget("ios") {
+        binaries {
+            framework {
+                baseName = "AuthenticationRemote"
             }
         }
     }
+
+    jvm("android")
 
     js {
-        browser {
-        }
-        nodejs {
-        }
-    }
-
-    //linuxX64()
-    //mingwX64()
-    //macosX64()
-
-    if (org.gradle.internal.os.OperatingSystem.current().isMacOsX) {
-        //select iOS target platform depending on the Xcode environment variables
-        val iOSTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget =
-            if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
-                ::iosArm64
-            else
-                ::iosX64
-
-        iOSTarget("ios") {
-            binaries {
-                framework {
-                    baseName = "MpesaAPI"
-                }
-            }
-        }
+        browser()
+        nodejs()
     }
 
     val serializationVersion = "0.14.0"
@@ -78,7 +62,24 @@ kotlin {
             }
         }
 
-        val jvmMain by getting {
+        val iosMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationVersion")
+
+                implementation("io.ktor:ktor-client-ios:$ktorVersion")
+                implementation("io.ktor:ktor-client-core-native:$ktorVersion")
+                implementation("io.ktor:ktor-client-json-native:$ktorVersion")
+                implementation("io.ktor:ktor-client-serialization-native:$ktorVersion")
+            }
+        }
+        val iosTest by getting {
+            dependencies {
+                api("io.ktor:ktor-client-mock-native:$ktorVersion")
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
+            }
+        }
+
+        val androidMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
 
@@ -91,7 +92,7 @@ kotlin {
             }
         }
 
-        val jvmTest by getting {
+        val androidTest by getting {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit"))
@@ -125,45 +126,14 @@ kotlin {
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutinesVersion")
             }
         }
-
-        if (org.gradle.internal.os.OperatingSystem.current().isMacOsX) {
-            val iosMain by getting {
-                dependencies {
-                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationVersion")
-
-                    implementation("io.ktor:ktor-client-ios:$ktorVersion")
-                    implementation("io.ktor:ktor-client-core-native:$ktorVersion")
-                    implementation("io.ktor:ktor-client-json-native:$ktorVersion")
-                    implementation("io.ktor:ktor-client-serialization-native:$ktorVersion")
-                }
-            }
-            val iosTest by getting {
-                dependencies {
-                    api("io.ktor:ktor-client-mock-native:$ktorVersion")
-                    api("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
-                }
-            }
-        }
     }
 }
 
-if (org.gradle.internal.os.OperatingSystem.current().isMacOsX) {
-//    task iosTest {
-//        def device = project.findProperty("iosDevice")?.toString() ?: "iPhone 8"
-//        dependsOn 'linkTestDebugExecutableIosx64'
-//        group = JavaBasePlugin.VERIFICATION_GROUP
-//        description = "Runs tests for target 'ios' on an iOS simulator"
-//
-//        doLast {
-//            def binary = kotlin.targets.iosx64.compilations.test.getBinary('EXECUTABLE', 'DEBUG')
-//            exec {
-//                commandLine 'xcrun', 'simctl', 'spawn', device, binary.absolutePath
-//            }
-//        }
-//    }
-//    tasks.check.dependsOn(tasks.iosTest)
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
-
 tasks.withType<Test> {
     testLogging {
         events("passed", "skipped", "failed")
@@ -172,41 +142,33 @@ tasks.withType<Test> {
     }
 }
 
-//val packForXcode by tasks.creating(Sync::class) {
-//    val targetDir = File(buildDir, "xcode-frameworks")
-//
-//    /// selecting the right configuration for the iOS
-//    /// framework depending on the environment
-//    /// variables set by Xcode build
-//    val mode = System.getenv("CONFIGURATION") ?: "DEBUG"
-//    val framework = kotlin.targets
-//        .getByName<KotlinNativeTarget>("ios")
-//        .binaries.getFramework(mode)
-//    inputs.property("mode", mode)
-//    dependsOn(framework.linkTask)
-//
-//    from({ framework.outputDirectory })
-//    into(targetDir)
-//
-//    /// generate a helpful ./gradlew wrapper with embedded Java path
-//    doLast {
-//        val gradlew = File(targetDir, "gradlew")
-//        gradlew.writeText("#!/bin/bash\n"
-//            + "export 'JAVA_HOME=${System.getProperty("java.home")}'\n"
-//            + "cd '${rootProject.rootDir}'\n"
-//            + "./gradlew \$@\n")
-//        gradlew.setExecutable(true)
-//    }
+val packForXcode by tasks.creating(Sync::class) {
+    val targetDir = File(buildDir, "xcode-frameworks")
 
-//val ktlint by configurations.creating
-//
-//dependencies {
-//    ktlint("com.github.shyiko:ktlint:0.31.0")
-//}
-//
-//val klintIdea by tasks.creating(JavaExec::class) {
-//    description = "Apply ktlint rules to IntelliJ"
-//    classpath = ktlint
-//    main = "com.github.shyiko.ktlint.Main"
-//    args = listOf("src/**/*.kt", "-F")
-//}
+    /// selecting the right configuration for the iOS
+    /// framework depending on the environment
+    /// variables set by Xcode build
+    val mode = System.getenv("CONFIGURATION") ?: "DEBUG"
+    val framework = kotlin.targets
+        .getByName<KotlinNativeTarget>("ios")
+        .binaries.getFramework(mode)
+    inputs.property("mode", mode)
+    dependsOn(framework.linkTask)
+
+    from({ framework.outputDirectory })
+    into(targetDir)
+
+    /// generate a helpful ./gradlew wrapper with embedded Java path
+    doLast {
+        val gradlew = File(targetDir, "gradlew")
+        gradlew.writeText(
+            "#!/bin/bash\n"
+                    + "export 'JAVA_HOME=${System.getProperty("java.home")}'\n"
+                    + "cd '${rootProject.rootDir}'\n"
+                    + "./gradlew \$@\n"
+        )
+        gradlew.setExecutable(true)
+    }
+}
+
+tasks.getByName("build").dependsOn(packForXcode)

@@ -15,7 +15,6 @@ import io.piestack.multiplatform.mpesa.error.*
 import io.piestack.multiplatform.mpesa.helpers.Base64Factory
 import io.piestack.multiplatform.mpesa.helpers.generatePassword
 import io.piestack.multiplatform.mpesa.helpers.generateTimestamp
-import io.piestack.multiplatform.mpesa.model.Task
 import io.piestack.multiplatform.mpesa.model.enums.Environment
 import io.piestack.multiplatform.mpesa.model.enums.TransactionType
 import io.piestack.multiplatform.mpesa.model.requests.LipaNaMpesaOnlinePaymentRequest
@@ -37,17 +36,6 @@ class Mpesa(
     private val securityCredential: String? = null
 ) {
 
-    private val client: HttpClient = HttpClient(httpClientEngine!!) {
-        install(JsonFeature) {
-            serializer = KotlinxSerializer().apply {
-                // It's necessary register the serializer because:
-                // Obtaining serializer from KClass is not available on native
-                // due to the lack of reflection
-                register(Task.serializer())
-            }
-        }
-    }
-
     @UnstableDefault
     private suspend fun authenticate(): Either<ApiError, AuthResponse> = try {
         val appKeySecret = "$appKey:$appSecret"
@@ -60,8 +48,6 @@ class Mpesa(
             header("cache-control", "no-cache")
         }
 
-        // JsonFeature does not working currently with root-level array
-        // https://github.com/Kotlin/kotlinx.serialization/issues/179
         val authResponse = Json.nonstrict.parse(AuthResponse.serializer(), authResponseJson)
 
         Either.Right(authResponse)
@@ -146,6 +132,11 @@ class Mpesa(
         }
     }
 
+    private val client: HttpClient = HttpClient(httpClientEngine!!) {
+        install(JsonFeature) {
+            serializer = KotlinxSerializer()
+        }
+    }
 
     private fun handleError(exception: Exception): Either<ApiError, Nothing> =
         if (exception is ResponseException) {
