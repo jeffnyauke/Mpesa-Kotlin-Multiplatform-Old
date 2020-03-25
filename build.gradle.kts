@@ -4,8 +4,8 @@ group = "io.piestack.multiplatform"
 version = "0.0.1"
 
 plugins {
-    kotlin("multiplatform") version "1.3.71"
-    kotlin("plugin.serialization") version "1.3.71"
+    kotlin("multiplatform") version "1.3.70"
+    kotlin("plugin.serialization") version "1.3.70"
     `maven-publish`
 }
 
@@ -24,7 +24,7 @@ kotlin {
     iOSTarget("ios") {
         binaries {
             framework {
-                baseName = "AuthenticationRemote"
+                baseName = "Mpesa"
             }
         }
     }
@@ -36,9 +36,9 @@ kotlin {
         nodejs()
     }
 
-    val serializationVersion = "0.14.0"
-    val ktorVersion = "1.3.1"
-    val coroutinesVersion = "1.3.3"
+    val serializationVersion = "0.20.0"
+    val ktorVersion = "1.3.2"
+    val coroutinesVersion = "1.3.4"
     val klockVersion = "1.7.0"
 
     sourceSets {

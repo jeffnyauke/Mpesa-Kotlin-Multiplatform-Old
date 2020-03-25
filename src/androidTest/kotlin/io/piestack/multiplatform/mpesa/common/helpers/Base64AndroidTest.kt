@@ -4,7 +4,7 @@ import io.piestack.multiplatform.mpesa.helpers.Base64Factory
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class Base64JvmTest {
+class Base64AndroidTest {
 
     @Test
     fun testNonAsciiString() {
